@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>WebPack 4</title>
+    <base target="_blank">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css"
+      integrity="sha256-oSrCnRYXvHG31SBifqP2PM1uje7SJUyX0nTwO2RJV54="
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <div class="wrapper"><h2>webpack 4</h2></div>
+    <div class="wrapper">
+      <section>
+        <h4>1. Default</h4>
+        <pre><code>
+mkdir webpack4-boilerplate
+cd webpack4-boilerplate
+yarn init -y
+yarn add webpack webpack-cli -D
+            </code></pre>
+      </section>
+      <section>
+        <h4>2. Структура проекта</h4>
+        <ul>
+          <li>src/index.js</li>
+          <li>package.json</li>
+        </ul>
+      </section>
+      <section>
+        <h4>3. Тест</h4>
+        <pre><code>
+console.log('Hello World')
+               </code></pre>
+        <h4>3-a. Запуск</h4>
+        <pre><code>
+yarn run webpack
+               </code></pre>
+        <h4>3-b. Результат</h4>
+        <pre><code>
+dist/main.js
+               </code></pre>
+      </section>
+      <section>
+        <h4>4. index.html</h4>
+        <pre><code>
+touch dist/index.html
+                </code></pre>
+        <p>emmet: <b>!</b></p>
+        <p>&lt;script src="./main.js"&gt;&lt;/script&gt;</p>
+        <p>Browser WebConsole: 'Hello World'</p>
+        <h4>4-a. По умолчанию:</h4>
+        <ol>
+          <li>
+            Сборка ES6 modules
+            <pre><code>
+<span class="comment">index.js</span>
+import { hello } from './hello'
+import { log } from './log'
+
+document.body.insertAdjacentHTML(
+    'afterbegin', 
+    `&lt;h1&gt;${hello}&lt;/h1&gt;`
+)
+log(hello)
+
+<span class="comment">hello.js</span>
+export const hello = "Hello World!";
+
+<span class="comment">log.js</span>
+export const log = msg =&gt; console.log(msg)
+                        </code></pre>
+          </li>
+          <li>
+            Файл index.html подключает main.js и любые другие ресурсы по желанию
+            без Webpack.
+          </li>
+        </ol>
+      </section>
+      <section>
+        <h4>5. webpack.config.js</h4>
+        <ol>
+          <li>entry</li>
+          <li>output</li>
+          <li>loader</li>
+          <li>plugins</li>
+        </ol>
+        <p><b>module.exports</b> - объект конфигурации webpack</p>
+      </section>
+      <section>
+        <h4>5.1. entry &amp; output</h4>
+        <pre><code>
+const path = require("path");
+
+module.exports = {
+    entry: "./src/index.js" ,
+    output: {
+      path: path.resolve(__dirname, "dist"),
+      filename: "bundle.js",
+    }
+}
+               </code></pre>
+        <ul>
+          <li><b>path</b> - npm пакет для работы с путями (различные ОС)</li>
+          <li>
+            <b>path.resolve</b> - метод для конкатенации пути и имени файла
+          </li>
+          <li><b>__dirname</b> - абсолютный путь к текущей директории</li>
+        </ul>
+      </section>
+      <section>
+        <h4>5.2. Plugins</h4>
+        <ul>
+          <li>
+            <b>html-webpack-plugin</b> - переносит <b>index.html</b> из
+            <b>src</b> в <b>dist</b>
+          </li>
+          <li>
+            <b>clean-webpack-plugin</b> - удаляет папку <b>dist</b> перед
+            обновлением этой папки
+          </li>
+          <pre><code>
+yarn add  html-webpack-plugin -D
+yarn add  clean-webpack-plugin -D
+
+<span class="comment">webpack.config.js</span>
+const HtmlWebpackPlugin =
+    require("html-webpack-plugin");
+const CleanWebpackPlugin =
+    require("clean-webpack-plugin");
+    module.exports = {
+        plugins: [
+            new CleanWebpackPlugin("dist", {}),
+            new HtmlWebpackPlugin({
+                inject: false,
+                hash: true,
+                template: "./src/index.html"
+              })
+        ]
+    }
+                   </code></pre>
+        </ul>
+        <p>Переместите <b>dist/index.html</b> в <b>src/index.html</b></p>
+      </section>
+      <section>
+        <h4>6. webpack-dev-server</h4>
+        <pre><code>
+<span class="comment">package.json</span>
+ "scripts": {
+    "build": "webpack --mode production",
+    "start": "webpack-dev-server  --mode development"
+  },
+               </code></pre>
+        <pre><code>
+yarn add  webpack-dev-server -D
+
+<span class="comment">webpack.config.js</span>
+module.exports = {
+<span class="comment">entry &amp; output</span>
+    devServer: {
+        contentBase: path.join(__dirname, "dist"),
+        port: 8080,
+        overlay: {
+        warnings: false,
+        errors: true
+        }
+    }
+}
+               </code></pre>
+        <p>
+          <b>contentBase</b> - указывает на абсолютный путь к папкам которые
+          будут отслеживаться
+        </p>
+        <p><b>port</b> - изменить номер порта</p>
+        <p>
+          <b>overlay</b> - вывод <b>errors: true</b> на web-страницу и
+          игнорирование <b>warning</b>
+        </p>
+        <p>
+          <a
+            href="https://webpack.js.org/configuration/dev-server/#devserver-contentbase"
+            >Подробное описание <b>webpack-dev-server</b></a
+          >
+        </p>
+      </section>
+      <section>
+        <h4>7. Debagger &amp Devtool</h4>
+        <p>
+          Контроль за отображением <b>source maps</b> в
+          <b>debagger</b> браузеров
+        </p>
+        <pre><code>
+<span class="comment">webpack.config.js</span>
+const conf = {
+    <span class="comment">содержимое <b>module.exports</b></span>
+}
+
+module.exports = (env, options) =&gt; {
+    const production = options.mode === "production";
+    conf.devtool = production
+        ? "source-map"
+        : "eval-sourcemap";
+    return conf;
+  };
+               </code></pre>
+        <p>
+          <a href="https://webpack.js.org/configuration/devtool/#devtool"
+            >Подробнее о <b>devtool</b></a
+          >
+        </p>
+        <p>
+          <a href="https://webpack.js.org/concepts/mode/#mode-development"
+            >Пример настройки <b>webpack.config.js</b></a
+          >
+        </p>
+        <p>Важно: в <b>debagger</b> пока не видно файла <b>log.js</b></p>
+      </section>
+      <section>
+        <h4>8. Loaders</h4>
+        <pre><code>
+const conf = {
+  module: {
+    rules: [ {
+<span class="comment"> loaders</span>
+    } ]
+  }
+}
+            </code></pre>
+        <ol>
+          <li>
+            <b>test</b> - регулярное выражение, описывающее к каким файлам
+            применяется <b>loader</b>
+          </li>
+          <li>
+            <b>exclude</b> или <b>include</b> - регулярное выражение,
+            исключающее или включающее дополнительные условия отбора
+          </li>
+          <li>
+            <b>use</b> - объект или массив объектов со свойством <b>loader</b> и
+            необязательными дополнительными свойствами
+          </li>
+          <li><b>options: {fallback: "reserve-loader"}</b> - использование резервного зарузчика в случае проблем работы основного
+            <pre><code>
+use: {
+  loader: "main-loader",
+  options: {
+    fallback: "reserve-loader"
+  }
+}
+            </code></pre>
+          </li>
+        </ol>
+        
+        <p>
+          <a href="https://webpack.js.org/loaders/#files"
+            >Список основных <b>loader</b> с описанием и примерами</a
+          >
+        </p>
+      </section>
+      <section>
+        <h4>8.1 Loaders: Babel</h4>
+        <pre><code>
+yarn add @babel/core babel-loader @babel/preset-env -D
+          </code></pre>
+        <pre><code>
+test: /\.js$/,
+exclude: /node_modules/,
+use: {
+  loader: "babel-loader",
+  options: {
+    presets: ["@babel/preset-env"]
+  }
+}
+</code></pre>
+        <p>Важно: в <b>debagger</b> теперь видно файл <b>log.js</b></p>
+        <p>
+          <a href="https://babeljs.io/setup.html#installation"
+            >Подробнее об инсталяции <b>babel</b></a
+          >
+        </p>
+        <p>
+          <a href="https://github.com/babel/babel-loader"
+            >Подробнее о <b>babel-loader</b></a
+          >
+        </p>
+      </section>
+      <section>
+        <h4>8.3. Loaders: File</h4>
+        <p>
+          Добавим в <b>src</b> папку <b>image</b> и поместим туда изображение.
+        </p>
+        <p>
+          Попробуем добавить это изображение как фоновое в CSS/SASS файл указав
+          путь от css/scss файла к изображению:
+        </p>
+        <pre><code>
+background: url(../image/foto.jpg);
+        </code></pre>
+        <p>
+          Ошибка с текстом "You may need an appropriate loader to handle this
+          file type." подсказывает, что необходим новый <b>loader</b>.
+        </p>
+
+        <pre><code>
+yarn add file-loader  -D
+
+<span class="comment">webpack.config.js</span>
+test: /\.(png|jpg|gif|svg)$/,
+  use: [
+    {
+      loader: 'file-loader',
+      options: {}
+    }
+  ]
+        </code></pre>
+        <p>Подходит для загрузки файлов, подключаемых через CSS/SASS  - шрифты, изображения</p>
+        <p>Для изображений существует несколько различных <b>loader</b> - раздел 8.3 - 8.4.</p>
+        <p>
+          <b>file-loader</b> подходит для работы с подготовленными (оптимизированными) изображеними.
+        </p>
+        <p>Что делает <b>file-loader</b>: 
+          название файла заменяет на хеш-строку вида
+          "447fbeb86e3d496c33cd32a563ce612a.jpg", а сам файл и ссылку на него
+          размещает в <b>dist</b>
+        </p>
+        <p>Сохранение пути и имени файла возможно с помощью <b>options</b></p>
+        <pre><code>
+<span class="comment">webpack.config.js</span>
+options: {
+  name: '[path][name].[ext]',
+  context: ''
+}
+
+<span class="comment">src/scss/style.scss</span>
+background: url(../../asssets/image/foto.jpg);
+
+<span class="comment">dist/style.css</span>
+background: url(asssets/image/foto.jpg);
+        </code></pre>
+        <p>
+          <a href="https://webpack.js.org/loaders/file-loader/"
+            >Подробнее о <b>file-loader</b></a
+          >
+        </p>
+      </section>
+      <section>
+        <h4>8.2 Loaders: CSS/SASS</h4>
+        <pre><code>
+yarn add style-loader -D
+yarn add css-loader -D
+yarn add sass-loader -D
+yarn add node-sass -D
+          </code></pre>
+        <ol>
+          <li>Важен порядок подключения</li>
+          <li>
+            Последовательность выполнения в массиве - с конца к началу массива
+            <details>
+              <summary>Пример метода pop()</summary>
+              <pre> <code>
+let str = '';
+let arr = ['style-loader', 'css-loader'];
+
+while (arr.length) {
+   str +=   arr.pop() + "; \n";
+}
+<span class="comment">
+css-loader;
+style-loader;
+</span>
+          </code></pre></details</details
+            >
+          </li>
+          <li>
+            Sass-loader считывает файлы, формирует css, передает следующему
+            лоадеру в массиве
+          </li>
+          <li>
+            Css-loader получает (или считывает файлы в отсутствие sass) и
+            передает следующему лоадеру
+          </li>
+          <li>
+            Style-loader помещает css в <b>head</b> index.html в теге
+            <b>style</b>
+          </li>
+        </ol>
+        <pre><code>
+test: /\.scss$/,
+use: [
+  { loader: "style-loader" },
+  {
+    loader: "css-loader",
+    options: {
+      modules: false
+    }
+  },
+  {
+    loader: "sass-loader",
+    options: {
+      sourceMap: true
+    }
+  }
+]
+          </code></pre>
+        <h4>8.2-a. Подключение файлов sass/css</h4>
+        <p>Файлы подключаются в *.js файлы с помощью <b>import</b></p>
+        <pre><code>
+<span class="comment">src/scss/style.scss</span>
+h1 {
+    text-align: center;
+    font-family: sans-serif;
+    color: #c00;
+}
+
+<span class="comment">index.js</span>
+import './scss/style.scss';
+          </code></pre>
+        <p>После запуска проверить <b>header</b> файла <b>index.html</b></p>
+      </section>
+      <section>
+        <h4>5.3. Plugin: отдельный css файл</h4>
+        <pre><code>
+yarn add extract-css-chunks-webpack-plugin -D
+
+<span class="comment">webpack.config.js</span>
+const ExtractCssChunks 
+  = require("extract-css-chunks-webpack-plugin");
+
+<span class="comment">rules: </span>
+[
+  { loader: "style-loader" },
+  { loader: ExtractCssChunks.loader },
+  { loader: "css-loader"}
+]
+
+<span class="comment">plugins: </span>
+ new ExtractCssChunks({
+      filename: "style.css",
+      chunkFilename: "[id].css",
+      hot: true,
+      orderWarning: true,
+      reloadAll: true,
+      cssModules: false
+    }),
+
+<span class="comment">index.html</span>
+&lt;link rel="stylesheet" href="./style.css"&gt;
+          </code></pre>
+      </section>
+
+      <section>
+        <h4>8.3. Loaders: Url</h4>
+        <p>
+          Изображение меньше определенного размера можно преобразовать в
+          <a href="https://ru.wikipedia.org/wiki/Data:_URL">DataURL</a> формат.
+          Изображения большего размера будут обработаны как <b>file-loader</b>
+        </p>
+        <pre><code>
+yarn add url-loader -D
+
+<span class="comment">webpack.config.js</span>
+test: /\.(png|svg|jpg|gif)$/,
+use: [
+  {
+    loader: "url-loader",
+    options: {
+      fallback: "file-loader",
+      name: "[path][name].[ext]",
+      outputPath: "img/",
+      limit: 8192
+    }
+  }
+]
+            </code></pre>
+            <h4>8.4. Loaders: svg, оптимизация и т.п.</h4>
+            <p>SVG</p>
+            <ul>
+              <li><a href="https://www.npmjs.com/package/raw-loader">raw-loader</a> - доступ к необработанному SVG</li>
+              <li><a href="https://www.npmjs.com/package/svg-inline-loader">svg-inline-loader</a> - доступ к SVG с удалением ненужного (дубликаты и т.п.)</li>
+              <li><a href="https://www.npmjs.com/package/svg-sprite-loader">svg-sprite-loader </a> - создает спрайты</li>
+              <li><a href="https://www.npmjs.com/package/svg-url-loader">svg-url-loader </a> - создает строку DataUrl, закодированную utf-8 </li>
+            </ul>
+            <p>Оптимизация</p>
+            <ul>
+              <li><a href="https://www.npmjs.com/package/image-webpack-loader">image-webpack-loader</a> - минификация PNG, JPEG, GIF, SVG and WEBP с помощью imagemin</li>
+              <li><a href="https://www.npmjs.com/package/svgo-loader">yarn add svgo svgo-loader -D</a> минимизация svg файла</li>
+            </ul>
+            <p>srcset</p>
+            <ul>
+              <li><a href="https://www.npmjs.com/package/resize-image-loader">resize-image-loader </a></li>
+              <li><a href="https://www.npmjs.com/package/responsive-loader">responsive-loader</a></li>
+            </ul>
+          </section>
+          <section>
+            <h4>8.5. Loaders: Handlebars</h4>
+            <p>Пример подключения Handlebars</p>
+            <pre><code>
+yarn add handlebars-loader -D
+yarn add handlebars --save
+
+<span class="comment">webpack.config.js</span>
+test: /\.hbs$/,
+use: "handlebars-loader",
+exclude: /node_modules/
+
+<span class="comment">index.js</span>
+import  headerRun  from "./js/header";
+export const wrapper = document.querySelector(".wrapper");
+headerRun();
+
+<span class="comment">js/header.js</span>
+import headerTpl from '../html/header.hbs';
+import { wrapper } from "../index";
+const data = {
+    title: 'Handlebars'
+};
+export default function run () {
+    wrapper.insertAdjacentHTML(
+      "afterbegin",
+      headerTpl(data)
+      );
+}
+
+<span class="comment">html/header.hbs</span>
+&lt;h2&gt;{{title}}&lt;/h2&gt;
+            </code></pre>
+            <p>Готовая сборка: <a href="https://github.com/statickidz/webpack-handlebars-bootstrap/">Webpack 4 + Bootstrap 4 + Handlebars</a> </p>
+          </section>
+          <section>
+            <h4>Дополнительно</h4>
+            <p><a href="https://survivejs.com/webpack/">Подробный обзор <b>webpack</b></a></p>
+            <p>Laravel: </p>
+            <ul>
+              <li><a href="https://laravel.com/docs/5.0/elixir">работа с gulp</a>  </li>
+              <li><a href="http://laravel.su/docs/5.4/mix">работа с webpack</a></li>
+            </ul>
+          </section>
+    </div>
+    <script src="./js/app.js"></script>
+  </body>
+</html>
